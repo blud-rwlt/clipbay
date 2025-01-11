@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Vídeos Curtos</title>
+    <style type="text.css">body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 50px;
+    }
+    
+    h1 {
+        color: #333;
+    }
+    
+    #video {
+        margin-top: 20px;
+    }
+    
+    #timeline {
+        width: 600px;
+        height: 80px;
+        background-color: #ccc;
+        position: relative;
+        margin-top: 20px;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+    
+    #timeline-video {
+        width: 100%;
+        height: 100%;
+        background-color: #4CAF50;
+        border-radius: 5px;
+    }
+    
+    #timeline-playhead {
+        position: absolute;
+        width: 2px;
+        background-color: #FF0000;
+        top: 0;
+        height: 100%;
+        pointer-events: none;
+    }
+    
+    #timeline-selection {
+        position: absolute;
+        background-color: rgba(0, 0, 255, 0.3);
+        height: 100%;
+        pointer-events: none;
+        border-radius: 5px;
+    }
+    
+    button {
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    
+    button:hover {
+        background-color: #45a049;
+    }
+    </style>
+</head>
+<body>
+    <h1>Editor de Vídeos Curtos</h1>
+
+    <!-- Área para carregar e exibir o vídeo -->
+    <input type="file" id="videoUpload" accept="video/*">
+    <video id="video" width="600" controls></video>
+
+    <!-- Linha do Tempo -->
+    <div id="timeline">
+        <div id="timeline-video"></div>
+        <div id="timeline-playhead"></div>
+        <div id="timeline-selection"></div>
+    </div>
+
+    <!-- Botões para Play/Pause e Cortar -->
+    <button id="playPauseButton" onclick="togglePlay()">Play/Pause</button>
+    <button id="cutButton" onclick="cutVideo()">Cortar</button>
+
+    <script>let videoElement = document.getElementById('video');
+        let playhead = document.getElementById('timeline-playhead');
+        let timelineSelection = document.getElementById('timeline-selection');
+        let playPauseButton = document.getElementById('playPauseButton');
+        let cutButton = document.getElementById('cutButton');
+        
+        // Variáveis para controlar o estado da seleção de corte
+        let isSelecting = false;
+        let selectionStart = 0;
+        let selectionEnd = 0;
+        
+        // Função que atualiza o playhead conforme o vídeo avança
+        function updatePlayhead() {
+            let progress = (videoElement.currentTime / videoElement.duration) * 100;
+            playhead.style.left = progress + '%';
+        
+            // Quando o vídeo terminar, pausamos e resetamos o playhead
+            if (videoElement.currentTime === videoElement.duration) {
+                videoElement.pause();
+                playPauseButton.textContent = 'Play';
+            }
+        }
+        
+        // Alterna entre play e pause
+        function togglePlay() {
+            if (videoElement.paused) {
+                videoElement.play();
+                playPauseButton.textContent = 'Pause';
+            } else {
+                videoElement.pause();
+                playPauseButton.textContent = 'Play';
+            }
+        }
+        
+        // Evento para atualizar a linha do tempo enquanto o vídeo está sendo reproduzido
+        videoElement.addEventListener('timeupdate', updatePlayhead);
+        
+        // Função para iniciar a seleção na linha do tempo
+        document.getElementById('timeline').addEventListener('mousedown', function(event) {
+            const timelineWidth = event.target.offsetWidth;
+            const clickPosition = event.offsetX;
+        
+            // Inicia a seleção de corte
+            if (!isSelecting) {
+                selectionStart = (clickPosition / timelineWidth) * videoElement.duration;
+                timelineSelection.style.left = (clickPosition / timelineWidth) * 100 + '%';
+                timelineSelection.style.width = '0%';
+                isSelecting = true;
+            }
+        });
+        
+        // Função para finalizar a seleção
+        document.getElementById('timeline').addEventListener('mouseup', function(event) {
+            const timelineWidth = event.target.offsetWidth;
+            const clickPosition = event.offsetX;
+        
+            if (isSelecting) {
+                selectionEnd = (clickPosition / timelineWidth) * videoElement.duration;
+                const selectionWidth = ((selectionEnd - selectionStart) / videoElement.duration) * 100;
+                timelineSelection.style.width = selectionWidth + '%';
+                isSelecting = false;
+            }
+        });
+        
+        // Função para cortar o vídeo com base na seleção
+        function cutVideo() {
+            if (selectionStart === selectionEnd) {
+                alert('Selecione uma parte do vídeo para cortar!');
+                return;
+            }
+        
+            // Aqui você poderia implementar o corte de vídeo.
+            alert(`Cortando vídeo de ${selectionStart.toFixed(2)}s a ${selectionEnd.toFixed(2)}s`);
+        }
+        
+        // Carregar o vídeo quando o usuário selecionar um arquivo
+        document.getElementById('videoUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const url = URL.createObjectURL(file);
+            videoElement.src = url;
+        });
+        </script>
+</body>
+</html>
